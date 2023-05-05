@@ -63,11 +63,12 @@ class ExportGethTracesJob(BaseJob):
                 tx_trace.get('result').get('error') is None
                 and tx_trace.get('result').get('output') is None
             ):
-                err = '`output` fields missing in traces file'
-                raise RetriableValueError(
-                    'Error for trace in block {block}. Need to retry. Error: {err}, result: {result}'
-                        .format(block=block_number, err=err, result=result)
-                )      
+                # err = '`output` fields missing in traces file'
+                # raise RetriableValueError(
+                #     'Error for trace in block {block}. Need to retry. Error: {err}, result: {result}'
+                #         .format(block=block_number, err=err, result=result)
+                # )
+                pass
 
     def _start(self):
         self.item_exporter.open()
@@ -93,6 +94,10 @@ class ExportGethTracesJob(BaseJob):
         for response_item in response:
             block_number = response_item.get('id')
             result = rpc_response_to_result(response_item)
+
+            if response_item.get('output') is None:
+                response_item['output'] = '0x'
+
             self._check_result(result, block_number)
 
             geth_trace = self.geth_trace_mapper.json_dict_to_geth_trace({
