@@ -36,13 +36,14 @@ setup(
     install_requires=[
         "base58==2.1.1",
         "blockchain-etl-common==1.6.1",
-        "blockchain-elt==v2.2.1",
-        "click>=7.0",
+        "ethereum-etl==1.11.2",
+        "click==8.0.4",
         "eth-abi==1.3.0",
-        "eth-utils==1.8.4",
+        "eth-utils==1.10.0",
         "ethereum-dasm==0.1.4",
         "requests>=2.23",
         "web3==4.7.2",
+        "eth-rlp==0.2.1",
     ],
     extras_require={
         "streaming": [
