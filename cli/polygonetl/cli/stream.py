@@ -59,7 +59,7 @@ def stream(last_synced_block_file, lag, provider_uri, output, start_block, entit
     entity_types = parse_entity_types(entity_types)
     validate_entity_types(entity_types, output)
 
-    from polygonetl.streaming.item_exporter_creator import create_item_exporter
+    from polygonetl.streaming.item_exporter_creator import create_item_exporters
     from polygonetl.streaming.eth_streamer_adapter import EthStreamerAdapter
     from blockchainetl_common.streaming.streamer import Streamer
 

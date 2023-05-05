@@ -44,6 +44,7 @@ setup(
         "requests>=2.23",
         "web3==4.7.2",
         "eth-rlp==0.2.1",
+        "kafka-python==2.0.2",
     ],
     extras_require={
         "streaming": [
