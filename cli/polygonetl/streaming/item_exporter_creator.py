@@ -24,14 +24,14 @@ from blockchainetl_common.jobs.exporters.console_item_exporter import ConsoleIte
 from blockchainetl_common.jobs.exporters.multi_item_exporter import MultiItemExporter
 
 
-def create_item_exporters(outputs):
+def create_item_exporters(outputs, chain):
     split_outputs = [output.strip() for output in outputs.split(',')] if outputs else ['console']
 
-    item_exporters = [create_item_exporter(output) for output in split_outputs]
+    item_exporters = [create_item_exporter(output, chain) for output in split_outputs]
     return MultiItemExporter(item_exporters)
 
 
-def create_item_exporter(output):
+def create_item_exporters(output, chain):
     item_exporter_type = determine_item_exporter_type(output)
     if item_exporter_type == ItemExporterType.PUBSUB:
         from blockchainetl_common.jobs.exporters.google_pubsub_item_exporter import GooglePubSubItemExporter
@@ -74,6 +74,17 @@ def create_item_exporter(output):
         item_exporter = GcsItemExporter(bucket=bucket, path=path)
     elif item_exporter_type == ItemExporterType.CONSOLE:
         item_exporter = ConsoleItemExporter()
+    elif item_exporter_type == ItemExporterType.KAFKA:
+        from blockchainetl.jobs.exporters.kafka_exporter import KafkaItemExporter
+        item_exporter = KafkaItemExporter(output, item_type_to_topic_mapping={
+            'block': '{}_blocks'.format(chain),
+            'transaction': '{}_transactions'.format(chain),
+            'log': '{}_logs'.format(chain),
+            'token_transfer': '{}_token_transfers'.format(chain),
+            'trace': '{}_traces'.format(chain),
+            'contract': '{}_contracts'.format(chain),
+            'token': '{}_tokens'.format(chain),
+        })
     else:
         raise ValueError('Unable to determine item exporter type for output ' + output)
 
@@ -100,6 +111,8 @@ def determine_item_exporter_type(output):
         return ItemExporterType.GCS
     elif output is None or output == 'console':
         return ItemExporterType.CONSOLE
+    elif output is not None and output.startswith('kafka'):
+        return ItemExporterType.KAFKA
     else:
         return ItemExporterType.UNKNOWN
 
@@ -109,4 +122,5 @@ class ItemExporterType:
     POSTGRES = 'postgres'
     GCS = 'gcs'
     CONSOLE = 'console'
+    KAFKA = 'kafka'
     UNKNOWN = 'unknown'
