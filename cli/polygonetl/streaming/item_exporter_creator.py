@@ -19,9 +19,23 @@
 #  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
+import json
+import logging
+
+from blockchainetl.jobs.exporters.kafka_exporter import KafkaItemExporter
 
 from blockchainetl_common.jobs.exporters.console_item_exporter import ConsoleItemExporter
 from blockchainetl_common.jobs.exporters.multi_item_exporter import MultiItemExporter
+
+
+class FixKafkaItemExporter(KafkaItemExporter):
+    def export_item(self, item):
+        item_type = item.get('type')
+        if item_type is not None and item_type in self.item_type_to_topic_mapping:
+            data = json.dumps(item).encode('utf-8')
+            return self.producer.send(self.item_type_to_topic_mapping[item_type], value=data)
+        else:
+            logging.warning('Topic for item type "{}" is not configured.'.format(item_type))
 
 
 def create_item_exporters(outputs, chain):
@@ -75,8 +89,7 @@ def create_item_exporters(output, chain):
     elif item_exporter_type == ItemExporterType.CONSOLE:
         item_exporter = ConsoleItemExporter()
     elif item_exporter_type == ItemExporterType.KAFKA:
-        from blockchainetl.jobs.exporters.kafka_exporter import KafkaItemExporter
-        item_exporter = KafkaItemExporter(output, item_type_to_topic_mapping={
+        item_exporter = FixKafkaItemExporter(output, item_type_to_topic_mapping={
             'block': '{}_blocks'.format(chain),
             'transaction': '{}_transactions'.format(chain),
             'log': '{}_logs'.format(chain),
