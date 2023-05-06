@@ -62,17 +62,18 @@ class ExportReceiptsJob(BaseJob):
         self.item_exporter.open()
 
     def _export(self):
+
         self.batch_work_executor.execute(self.transaction_hashes_iterable, self._export_receipts)
 
     def _export_receipts(self, transaction_hashes):
         receipts_rpc = list(generate_get_receipt_json_rpc(transaction_hashes))
         response = self.batch_web3_provider.make_batch_request(json.dumps(receipts_rpc))
+        results = rpc_response_batch_to_results(response)
         try:
-            results = rpc_response_batch_to_results(response)
+            receipts = [self.receipt_mapper.json_dict_to_receipt(result) for result in results]
         except Exception as e:
             logging.error('Retriable error when getting receipts for transaction hashes ' + ','.join(transaction_hashes))
             raise e
-        receipts = [self.receipt_mapper.json_dict_to_receipt(result) for result in results]
         if len(transaction_hashes) != len(receipts):
             logging.error('The number of receipts is not equal to the number of transaction hashes ' + ','.join(transaction_hashes))
             raise ValueError('The number of receipts is not equal to the number of transaction hashes.')
