@@ -30,6 +30,7 @@ from polygonetl.json_rpc_requests import generate_get_receipt_json_rpc
 from polygonetl.mappers.receipt_log_mapper import EthReceiptLogMapper
 from polygonetl.mappers.receipt_mapper import EthReceiptMapper
 from polygonetl.utils import rpc_response_batch_to_results
+from polygonetl.misc.retriable_value_error import RetriableValueError
 
 
 # Exports receipts and logs
@@ -66,7 +67,10 @@ class ExportReceiptsJob(BaseJob):
     def _export_receipts(self, transaction_hashes):
         receipts_rpc = list(generate_get_receipt_json_rpc(transaction_hashes))
         response = self.batch_web3_provider.make_batch_request(json.dumps(receipts_rpc))
-        results = rpc_response_batch_to_results(response)
+        try:
+            results = rpc_response_batch_to_results(response)
+        except RetriableValueError as _:
+            logging.error('Retriable error when getting receipts for transaction hashes ' + ','.join(transaction_hashes))
         receipts = [self.receipt_mapper.json_dict_to_receipt(result) for result in results]
         if len(transaction_hashes) != len(receipts):
             logging.error('The number of receipts is not equal to the number of transaction hashes ' + ','.join(transaction_hashes))
