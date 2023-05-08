@@ -66,14 +66,14 @@ def validate_range(range_start_incl, range_end_incl):
         raise ValueError('range_end must be greater or equal to range_start')
 
 
-def rpc_response_batch_to_results(response):
+def rpc_response_batch_to_results(response, _type=None):
     for response_item in response:
-        yield rpc_response_to_result(response_item)
+        yield rpc_response_to_result(response_item, _type)
 
 
-def rpc_response_to_result(response):
+def rpc_response_to_result(response, _type=None):
     result = response.get('result')
-    if result is None:
+    if result is None and not _type:
         error_message = 'result is None in response {}.'.format(response)
         if response.get('error') is None:
             error_message = error_message + ' Make sure polygon node is synced.'
