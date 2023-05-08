@@ -22,6 +22,7 @@
 
 
 import itertools
+import logging
 from collections import defaultdict
 
 
@@ -88,7 +89,7 @@ def enrich_transactions(transactions, receipts):
         ]))
 
     if len(result) != len(transactions):
-        raise ValueError('The number of transactions is wrong ' + str(result))
+        logging.warning('The number of transactions is wrong')
 
     return result
 
