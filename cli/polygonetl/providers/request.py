@@ -4,7 +4,7 @@ import lru
 import requests
 from requests.adapters import HTTPAdapter
 
-from web3.utils.caching import (
+from web3._utils.caching import (
     generate_cache_key,
 )
 

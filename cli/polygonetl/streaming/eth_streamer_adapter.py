@@ -34,7 +34,7 @@ class EthStreamerAdapter:
         self.item_id_calculator = EthItemIdCalculator()
         self.item_timestamp_calculator = EthItemTimestampCalculator()
         self.web3 = Web3(self.batch_web3_provider)
-        self.web3.middleware_stack.inject(geth_poa_middleware, layer=0)
+        self.web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
     def open(self):
         self.item_exporter.open()
