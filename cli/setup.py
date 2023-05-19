@@ -11,7 +11,7 @@ long_description = read("README.md") if os.path.isfile("README.md") else ""
 
 setup(
     name="polygon-etl",
-    version="0.3.5",
+    version="0.4.0",
     author="Evgeny Medvedev",
     author_email="evge.medvedev@gmail.com",
     description="Tools for exporting Polygon blockchain data to CSV or JSON",
@@ -34,15 +34,8 @@ setup(
     # collections.Mapping unsupported in 3.10 (https://bugs.python.org/issue44737)
     python_requires=">=3.7,<3.10",
     install_requires=[
-        "base58==2.1.1",
         "blockchain-etl-common==1.6.1",
-        "ethereum-etl==1.11.2",
-        "click==8.0.4",
-        "eth-abi==1.3.0",
-        "eth-utils==1.10.0",
-        "ethereum-dasm==0.1.4",
-        "requests>=2.23",
-        "web3==4.7.2",
+        "ethereum-etl==2.2.1",
         "eth-rlp==0.2.1",
         "kafka-python==2.0.2",
     ],
