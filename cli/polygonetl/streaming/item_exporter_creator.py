@@ -32,8 +32,7 @@ logger = logging.getLogger(__name__)
 class FixKafkaItemExporter(KafkaItemExporter):
 
     def fail(self, error):
-        logger.exception(f"An error was encountered while "
-                          f"writing to kafka {error}.", exc_info=error)
+        logger.exception(f"Sending a message to kafka fails, {error}.")
 
     def success(self, status):
         logger.info(f"Send message to kafka successfully {status}.")
