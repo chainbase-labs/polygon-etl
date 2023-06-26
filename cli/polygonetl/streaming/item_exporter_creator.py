@@ -27,13 +27,25 @@ from blockchainetl.jobs.exporters.kafka_exporter import KafkaItemExporter
 from blockchainetl_common.jobs.exporters.console_item_exporter import ConsoleItemExporter
 from blockchainetl_common.jobs.exporters.multi_item_exporter import MultiItemExporter
 
+logger = logging.getLogger(__name__)
 
 class FixKafkaItemExporter(KafkaItemExporter):
+
+    def fail(self, error):
+        logger.exception(f"An error was encountered while "
+                          f"writing to kafka {error}.", exc_info=error)
+
+    def success(self, status):
+        logger.info(f"Send message to kafka successfully {status}.")
+
     def export_item(self, item):
         item_type = item.get('type')
         if item_type is not None and item_type in self.item_type_to_topic_mapping:
             data = json.dumps(item).encode('utf-8')
-            return self.producer.send(self.item_type_to_topic_mapping[item_type], value=data)
+            return self.producer.send(
+                self.item_type_to_topic_mapping[item_type],
+                value=data
+            ).add_callback(self.success).add_errback(self.fail)
         else:
             logging.warning('Topic for item type "{}" is not configured.'.format(item_type))
 
