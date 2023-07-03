@@ -19,6 +19,7 @@
 #  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
+import sys
 import json
 import logging
 
@@ -26,13 +27,32 @@ from blockchainetl.jobs.exporters.kafka_exporter import KafkaItemExporter
 
 from blockchainetl_common.jobs.exporters.console_item_exporter import ConsoleItemExporter
 from blockchainetl_common.jobs.exporters.multi_item_exporter import MultiItemExporter
+from blockchainetl.jobs.exporters.converters.composite_item_converter import CompositeItemConverter
+
+from kafka import KafkaProducer
 
 logger = logging.getLogger(__name__)
 
 class FixKafkaItemExporter(KafkaItemExporter):
 
+    def __init__(self, output, item_type_to_topic_mapping, converters=()):
+        self.item_type_to_topic_mapping = item_type_to_topic_mapping
+        self.converter = CompositeItemConverter(converters)
+        self.connection_url = self.get_connection_url(output)
+        print(self.connection_url)
+        self.producer = KafkaProducer(
+            bootstrap_servers=self.connection_url,
+            retries=sys.maxsize,
+            max_in_flight_requests_per_connection=1
+        )
+
+    def export_items(self, items):
+        for item in items:
+            self.export_item(item)
+        self.producer.flush(timeout=30)
+
     def fail(self, error):
-        logger.exception(f"Sending a message to kafka fails, {error}.")
+        logger.exception(f"Send message to kafka failed: {error}.")
 
     def success(self, status):
         logger.info(f"Send message to kafka successfully {status}.")
@@ -44,7 +64,7 @@ class FixKafkaItemExporter(KafkaItemExporter):
             return self.producer.send(
                 self.item_type_to_topic_mapping[item_type],
                 value=data
-            ).add_callback(self.success).add_errback(self.fail)
+            ).add_errback(self.fail)
         else:
             logging.warning('Topic for item type "{}" is not configured.'.format(item_type))
 
